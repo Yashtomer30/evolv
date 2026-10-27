@@ -1,0 +1,219 @@
+/* ------------------------------------------------------------------
+   site-fixes.css — hand-written overrides on top of the Framer export.
+   Loaded last, so it wins. Nothing here is generated; safe to edit.
+   Sections:
+     1. Global mobile hygiene
+     2. Contact hero layout
+     3. Cal.com booking embed (scroll trapping)
+     4. Tap targets
+   ------------------------------------------------------------------ */
+
+/* 0. TEMPLATE LEFTOVERS ----------------------------------------- */
+/* The export still carries the Framer template's demo chrome and two
+   social icons for accounts that do not exist. React re-renders these on
+   hydration, so they are removed in CSS rather than in the markup —
+   deleting the nodes would not survive a re-render. */
+
+/* Floating "Get this template" badge linking to the Framer marketplace. */
+#template-overlay,
+a[href*="framer.com/community/marketplace"],
+[data-framer-name="Get Template Button"] {
+  display: none !important;
+}
+
+/* Evolv Labs is on Instagram and LinkedIn only; the template's Facebook
+   and X/Twitter icons point at bare domains. The wrapper carries the
+   button's background, so hide it rather than just the link inside. */
+[data-framer-name="Icon Wrapper"]:has(a[data-framer-name="Facebook"]),
+[data-framer-name="Icon Wrapper"]:has(a[data-framer-name="Twitter"]) {
+  display: none !important;
+}
+
+a[data-framer-name="Facebook"],
+a[data-framer-name="Twitter"] {
+  display: none !important;
+}
+
+/* 1. GLOBAL MOBILE HYGIENE -------------------------------------- */
+
+/* iOS inflates font sizes in landscape unless this is pinned. */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* The export sizes the page wrapper with 100vh. On mobile browsers 100vh
+   includes the area behind the address bar, so the page grows/jumps as the
+   bar hides. dvh tracks the *visible* viewport instead. */
+@supports (height: 100dvh) {
+  [style*="min-height:100vh"],
+  [style*="min-height: 100vh"] {
+    min-height: 100dvh !important;
+  }
+}
+
+/* No element should be able to push the page sideways on a phone. */
+@media (max-width: 809px) {
+  html,
+  body {
+    overflow-x: clip;
+  }
+}
+
+/* Removes the 300ms grey flash on tap without disabling focus rings. */
+a,
+button,
+[role="button"] {
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.08);
+}
+
+/* 2. CONTACT HERO LAYOUT ---------------------------------------- */
+/* The template ships this row with a single child capped at 238px, so the
+   copy crams into the left quarter and the remaining ~900px sits empty.
+   Re-form it as two columns: copy left on a readable measure, contact
+   details right, under the BOOK A CALL tag. */
+
+@media (min-width: 810px) {
+  .framer-1djj4cx {                 /* Contact Wrapper (the row) */
+    align-items: flex-start !important;
+    gap: 64px !important;
+    margin-top: 28px !important;    /* clear the headline and the tag */
+  }
+
+  .framer-1f1uvn6 {                 /* Left Content Wrapper */
+    max-width: none !important;
+    width: 100% !important;
+    flex-direction: row !important;
+    align-items: flex-start !important;
+    justify-content: space-between !important;
+    gap: 64px !important;
+  }
+
+  .framer-1cof3wh {                 /* the intro paragraph */
+    flex: 1 1 46ch !important;      /* comfortable line length */
+    max-width: 46ch !important;
+    min-width: 0 !important;
+    width: auto !important;
+  }
+
+  /* Framer sizes this block to 100% of its parent; in a row that starves
+     the paragraph, so pin it to its own content width. */
+  .framer-1rzb3qn {                 /* email + phone */
+    flex: 0 0 auto !important;
+    width: max-content !important;
+    max-width: max-content !important;
+    align-items: flex-end !important;
+    text-align: right !important;
+    gap: 6px !important;
+  }
+
+  .framer-1rzb3qn .framer-1auewsp,
+  .framer-1rzb3qn .framer-2qw2qg {
+    justify-content: flex-end !important;
+  }
+}
+
+/* Phones keep the stacked order, just with honest breathing room and
+   without the oversized dead space under the block. */
+@media (max-width: 809px) {
+  .framer-1ueucts {                 /* Contact Sections */
+    padding-top: 104px !important;
+    padding-bottom: 56px !important;  /* was leaving a tall empty black band */
+  }
+
+  .framer-1f1uvn6 {
+    gap: 24px !important;
+  }
+
+  /* No measure cap here. A phone column is already a comfortable line
+     length, so capping it only strands empty space down the right edge —
+     the same imbalance this file fixes on desktop. */
+  .framer-1cof3wh {
+    max-width: none !important;
+    width: 100% !important;
+  }
+
+  /* Tap targets add height to each line; keep the pair reading as one block. */
+  .framer-1rzb3qn {
+    gap: 0 !important;
+  }
+}
+
+/* 3. CAL.COM BOOKING EMBED --------------------------------------- */
+/* The embed ships as a fixed-height box with `overflow: scroll`, and the
+   iframe inside is taller than the box. On a touch screen that inner
+   scroller swallows the gesture, so the page cannot be scrolled past the
+   widget. Letting the box grow to the iframe's height removes the inner
+   scroller entirely — nothing left to trap the gesture.
+   site-fixes.js keeps the height in sync with Cal's resize messages. */
+
+.cal-inline-container,
+[class*="cal-inline-container"] {
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+  overflow-y: visible !important;
+  -webkit-overflow-scrolling: auto !important;
+}
+
+.framer-644ps0-container {           /* Framer's wrapper around the embed */
+  height: auto !important;
+  min-height: 0 !important;
+}
+
+.cal-inline-container iframe,
+[class*="cal-inline"] iframe {
+  display: block;
+  width: 100% !important;
+  min-height: 640px;
+  border: 0;
+}
+
+/* Breathing room so there is always page background beside the widget to
+   start a scroll gesture on, even mid-widget. */
+@media (max-width: 809px) {
+  .framer-644ps0-container {
+    padding-top: 8px !important;
+    padding-bottom: 24px !important;
+  }
+}
+
+/* 4. TAP TARGETS -------------------------------------------------- */
+/* Nav and footer links render 17-22px tall. Touch guidance is 44px.
+   Padding grows the hit area without moving the text. */
+
+@media (max-width: 809px) {
+  .framer-1auewsp a,
+  .framer-2qw2qg a,
+  [data-framer-name="Menu"] a,
+  [data-framer-name="Menu Wrapper"] a,
+  [data-framer-name="Social Media List"] a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  [data-framer-name="Icon Wrapper"] {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Nav and inline text links sit inside running copy, so they cannot be
+     given height without reflowing the sentence. An invisible overlay
+     grows the touch area instead — no layout shift, nothing visible. */
+  a.framer-styles-preset-19gj1be,
+  a.framer-styles-preset-1w0v712 {
+    position: relative;
+  }
+
+  a.framer-styles-preset-19gj1be::after,
+  a.framer-styles-preset-1w0v712::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 44px;
+    transform: translateY(-50%);
+  }
+}

@@ -1,0 +1,17 @@
+# Normalise text to LF in the repository; checkouts stay native.
+* text=auto eol=lf
+
+# Generated Framer output — don't diff it, don't count it in language stats.
+assets/sites/**   linguist-generated=true -diff
+assets/modules/** linguist-generated=true -diff
+
+# Binary assets
+*.woff2 binary
+*.woff  binary
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.webp  binary
+*.ico   binary
+*.mp4   binary

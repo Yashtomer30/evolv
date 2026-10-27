@@ -1,0 +1,20 @@
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+.vscode/
+.idea/
+
+# Working files that are not part of the site
+image.png
+image*.png
+screenshot*.png
+Screenshot*.png
+*.bak
+*.orig
+*.log
+
+# Nothing is built from source here — the site is served as-is.
+# If a toolchain is ever added, ignore its output below.
+node_modules/
