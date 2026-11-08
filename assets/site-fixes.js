@@ -24,6 +24,82 @@
     }
   }
 
+  /* 0b. NAV LINK ANCHORS ------------------------------------------ */
+  /* ABOUT / SOLUTION / CASE STUDY in the nav all point at "index.html#top"
+     or an external /case-study page that isn't part of this export, so
+     they either do nothing or 404. Each of those names an on-page section
+     by its eyebrow label ("ABOUT US", "SERVICES", "CASE STUDY"), so on
+     click we find that label and smooth-scroll to it instead, offset for
+     the sticky header. Matching by label text rather than an element id
+     survives the runtime's re-renders, the same reason keepTitle() exists. */
+
+  var NAV_TARGETS = [
+    { match: /case\s*stud/i, label: "case study" },
+    { match: /solution/i, label: "services" },
+    { match: /about/i, label: "about us" }
+  ];
+  var NAV_OFFSET = 90;
+
+  /* Only div/p/span: every section's eyebrow badge ("ABOUT US", "SERVICES",
+     "CASE STUDY") is one of those. Headings are excluded on purpose — the
+     case study portfolio cards further down the page repeat an <h*> whose
+     text is also "Case study", and matching case-insensitively would catch
+     those instead of the section badge. */
+  function findLabelElement(label) {
+    var candidates = document.querySelectorAll("div, p, span");
+    for (var i = 0; i < candidates.length; i++) {
+      var el = candidates[i];
+      if (el.children.length === 0 && (el.textContent || "").trim().toLowerCase() === label) {
+        return el;
+      }
+    }
+    return null;
+  }
+
+  /* The runtime recovers from hydration mismatches (our edited text not
+     matching what the compiled bundle expected to render) by discarding
+     and re-rendering whole subtrees, repeatedly, for a while after load.
+     That churn resets window scroll to 0 moments after we set it, so one
+     scrollTo() isn't enough — reassert it a few times, same idea as
+     keepTitle() above, finding the element fresh each time since the node
+     we scrolled to may itself have been replaced. */
+  function scrollToLabel(label) {
+    var el = findLabelElement(label);
+    if (!el) return false;
+    var targetY = el.getBoundingClientRect().top + window.pageYOffset - NAV_OFFSET;
+    window.scrollTo({ top: targetY, behavior: "smooth" });
+    [100, 250, 450, 700, 1000, 1500, 2200, 3000].forEach(function (t) {
+      setTimeout(function () {
+        var fresh = findLabelElement(label);
+        if (!fresh) return;
+        var y = fresh.getBoundingClientRect().top + window.pageYOffset - NAV_OFFSET;
+        if (Math.abs(window.pageYOffset - y) > 40) {
+          window.scrollTo({ top: y, behavior: "auto" });
+        }
+      }, t);
+    });
+    return true;
+  }
+
+  /* Capture phase, not bubble: the runtime's own client-side-routing click
+     handler lives on the link itself and calls stopPropagation(), which
+     would otherwise stop this from ever reaching a bubble listener on
+     document. Capture fires on the way down, before that can happen. */
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest && e.target.closest("a");
+    if (!a) return;
+    var text = (a.textContent || "").trim();
+    for (var i = 0; i < NAV_TARGETS.length; i++) {
+      if (NAV_TARGETS[i].match.test(text)) {
+        if (scrollToLabel(NAV_TARGETS[i].label)) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+        return;
+      }
+    }
+  }, true);
+
   /* 1. CAL.COM EMBED HEIGHT ------------------------------------- */
   /* Cal's embed posts its content height to the parent whenever the view
      changes (month -> slots -> form). We mirror that onto the iframe so
